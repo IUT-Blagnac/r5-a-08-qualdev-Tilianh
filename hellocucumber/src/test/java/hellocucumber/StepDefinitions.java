@@ -18,7 +18,7 @@ public class StepDefinitions {
 
     @When("on demande si on est vendredi")
     public void askIfItsVendredi() {
-        this.answer = this.today.equals("vendredi") ? "Oui" : "Non";
+        this.answer = RunCucumberTest.isItFriday(this.today);
     }
 
     @Then("répondre {string}")
