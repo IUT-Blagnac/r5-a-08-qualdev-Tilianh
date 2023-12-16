@@ -9,15 +9,15 @@ Ce dépôt concerne les rendus de mailto:A_changer@etu.univ-tlse2.fr[Tilian HUR�
 toc::[]
 
 == TP1
-
-Commande Maven :
+=== Commande Maven
 
 [source, bash]
 ----
 mvn archetype:generate "-DarchetypeGroupId=io.cucumber" "-DarchetypeArtifactId=cucumber-archetype" "-DarchetypeVersion=7.14.1" "-DgroupId=hellocucumber" "-DartifactId=hellocucumber" "-Dpackage=hellocucumber" "-Dversion=1.0.0-SNAPSHOT" "-DinteractiveMode=false"
 ----
 
-Contenu du fichier `is_it_friday_yet.feature`
+=== Contenu du fichier `is_it_friday_yet.feature`
+
 [source,gherkin]
 ----
 Feature: Est on vendredi ?
@@ -44,20 +44,22 @@ Feature: Est on vendredi ?
       | anything else! | Non    |
 ----
 
-Execution des tests :
+=== Execution des tests
 
-image::images/tp1_2.png[,450]
+[.thumb]
+image::images/tp1_tests.png[,450]
 
 == TP2
 
-Commande Maven :
+=== Commande Maven
 
 [source, bash]
 ----
 mvn archetype:generate -DgroupId=com.mycompany.app -DartifactId=cucumber_demo -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
 ----
 
-Contenu du fichier `pom.xml` (sinon ça marche pas) :
+=== Contenu du fichier `pom.xml`
+_(sinon ça marche pas)_
 
 [source, xml]
 ----
@@ -93,7 +95,7 @@ Contenu du fichier `pom.xml` (sinon ça marche pas) :
 </project>
 ----
 
-Contenu du fichier `Order.java` :
+=== Contenu du fichier `Order.java`
 
 [source, java]
 ----
@@ -140,6 +142,97 @@ public class Order {
 }
 ----
 
-Execution des tests :
+=== Execution des tests
 
-image::images/tp2_2.png[,750]
+[.thumb]
+image::images/tp2_tests.png[,750]
+
+== TP#3
+J'ai pour habitude de noter dans une note Google Keep le travail que j'ai à faire pour l'IUT sous forme de tâches. Pour chaque tâche, j'essaye de respecter un format bien précis comprenant le travail à faire, le module concerné ainsi que la date limite, afin d'obtenir facilement une vue d'ensemble de ce qu'il me reste à faire.
+
+J'ai donc choisi d'utiliser Python et la librairie `Behave` afin d'implémenter les scénarios vérifiant qu'une tâche ne peut être ajoutée que si elle respecte le format défini. J'ai également implémenté la classe `TodoList` permettant de gérer une liste de tâches en fonction d'un format donné.
+
+=== Contenu du fichier `todolist.feature`
+
+[source, gherkin]
+----
+Feature: Vérification format liste de tâches
+  Vérifier que les tâches ajoutées à la liste correspondent au format REGEX :
+    ^.*\S*\s\(.*\S*,\s{0,1}\d{1,2}\/\d{1,2}\)$
+
+  Scenario: Respect du format
+    Given la liste de tâches à faire
+    Given le format à respecter
+    Given la tâche "Terminer TP#3 (QualDev, 24/12)"
+    When la tâche est ajoutée à la liste
+    Then la liste est mise à jour sans erreur
+
+  Scenario: Format non respecté
+    Given la liste de tâches à faire
+    Given le format à respecter
+    Given la tâche "Finir le projet Symfony en Programmation Avancée pour le 7 janvier."
+    When la tâche est ajoutée à la liste
+    Then une erreur est renvoyée
+----
+
+=== Contenu du fichier `todolist_steps.py`
+
+[source, python]
+----
+from behave import *
+from todolist import TodoList, TaskInvalidFormat
+
+
+todoList = TodoList
+task = ""
+taskAdded = False
+
+
+@given('la liste de tâches à faire')
+def setTodoList(context):
+    global todoList
+    todoList = TodoList([
+        'Préparer prés. (MM, 18/12)',
+        'RÉVISER contrôle (NewDB, 19/12)',
+        'RÉVISER contrôle (Management, 20/12)'
+    ])
+
+@given('le format à respecter')
+def setTaskFormat(context):
+    todoList.setTaskFormat("^.*\S*\s\(.*\S*,\s{0,1}\d{1,2}\/\d{1,2}\)$")
+
+@given('la tâche "{t}"')
+def setNewTask(context, t):
+    global task
+    task = t
+
+@when('la tâche est ajoutée à la liste')
+def addNewTask(context):
+    global taskAdded
+    try:
+        todoList.addTask(task)
+        taskAdded = True
+    except TaskInvalidFormat:
+        taskAdded = False
+
+@then('la liste est mise à jour sans erreur')
+def checkTodoList(context):
+    assert taskAdded
+    assert isTaskInTodoList()
+
+@then('une erreur est renvoyée')
+def checkError(context):
+    assert not taskAdded
+    assert not isTaskInTodoList()
+
+
+def isTaskInTodoList():
+    for t in todoList.getTasks():
+        if t == task: return True
+    return False
+----
+
+=== Exécution des tests
+
+[.thumb]
+image::images/tp3_tests.png[,]
